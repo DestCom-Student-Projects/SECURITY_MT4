@@ -1,4 +1,5 @@
-import { exec } from 'child_process';
+import { readdir } from 'fs/promises';
+import { join, normalize, isAbsolute } from 'path';
 import { Body, Post, Route } from 'tsoa';
 
 /**
@@ -6,7 +7,6 @@ import { Body, Post, Route } from 'tsoa';
  */
 @Route("/photos")
 export class PhotosController {
-
   /**
    * Lister les photos sur le serveur
    */
@@ -16,20 +16,26 @@ export class PhotosController {
       path?: string;
     }
   ): Promise<{ files: string[] }> {
-    return new Promise(
-      (resolve, reject) => {
-        exec('ls ./assets/' + (body.path || ''), (err, stdout, stderr) => {
-          if (err) {
-            reject(err);
-          } else {
-            const files = stdout.split('\n').filter(f => !!f);
-            resolve({
-              files: files
-            });
-          }
-        });
-      }      
-    )
-   
+    try {
+      const basePath = './assets';
+      let fullPath = basePath;
+
+      if (body.path) {
+        // Normalize and secure the path
+        const normalizedPath = normalize(body.path).replace(/^(\.\.(\/|\\|$))+/, '');
+        
+        // Ensure the path doesn't try to go above the base directory
+        if (isAbsolute(normalizedPath) || normalizedPath.startsWith('..')) {
+          throw new Error('Invalid path');
+        }
+        
+        fullPath = join(basePath, normalizedPath);
+      }
+
+      const files = await readdir(fullPath);
+      return { files };
+    } catch (error) {
+      throw new Error('Error listing files: ' + (error as Error).message);
+    }
   }
 }

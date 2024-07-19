@@ -1,9 +1,9 @@
 import Express, { json } from "express";
 import { createServer, Server } from "http";
-import { hostname, platform, type } from 'os';
+import { hostname, platform, type } from "os";
 import swaggerUi from "swagger-ui-express";
 import { DefaultErrorHandler } from "./middleware/error-handler.middleware";
-import { RegisterRoutes } from './routes/routes';
+import { RegisterRoutes } from "./routes/routes";
 import { Log } from "./utility/Logging/Log";
 import { requestLogMiddleware } from "./utility/Logging/log.middleware";
 
@@ -18,7 +18,7 @@ export const StartServer = async () => {
   app.use(json());
 
   // Utiliser un middleware pour créer des logs
-  app.use(requestLogMiddleware('req'));
+  app.use(requestLogMiddleware("req"));
 
   RegisterRoutes(app);
 
@@ -34,47 +34,41 @@ export const StartServer = async () => {
     })
   );
 
-
   // Ajouter un handler pour les erreurs
   app.use(DefaultErrorHandler);
 
   // Demo endpoint pour retourner des infos du serveur
-  app.get('/info', (req, res) => {
+  app.get("/info", (req, res) => {
     res.json({
       title: "Security Code Samples API",
       host: hostname(),
       platform: platform(),
-      type: type()
+      type: type(),
+      familyName: "Azevedo Da Silva",
     });
-  })
+  });
 
   // Lancer le serveur
-  return new Promise<Server>(
-    (resolve) => {
-      const server = createServer(app);
-      server.listen(PORT, () => {
-        Log(`API Listening on port ${PORT}`)
-        resolve(server);
-      })     
-    }
-  );  
+  return new Promise<Server>((resolve) => {
+    const server = createServer(app);
+    server.listen(PORT, () => {
+      Log(`API Listening on port ${PORT}`);
+      resolve(server);
+    });
+  });
+};
 
-
-}
-
-export const StopServer = async (server: Server|undefined) => {
-  if (!server) { return; }
-  return new Promise<void>(
-    (resolve, reject) => {
-      server.close(
-        (err) => {
-          if (err) {
-            reject(err);            
-          } else {
-            resolve();
-          }
-        }
-      )
-    }
-  );  
-}
+export const StopServer = async (server: Server | undefined) => {
+  if (!server) {
+    return;
+  }
+  return new Promise<void>((resolve, reject) => {
+    server.close((err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+};

@@ -19,5 +19,5 @@ services:
       
 networks:
   sgbdr-network-prod:
-    driver: bridge
-    name: sgbdr-network-prod
+    external: true
+
